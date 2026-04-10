@@ -1,0 +1,20 @@
+# Tri-Layer Intelligence Crawler - Configuration
+# Version: 1.0.0
+# DO NOT COMMIT SECRETS HERE - Use .env for sensitive data
+
+crawler:
+  name: "CerberusCrawler"
+  start_urls:
+    - "https://books.toscrape.com"
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  download_delay: 1.0  # Seconds between requests to same domain
+  concurrent_requests: 4
+
+storage:
+  csv_output_path: "data/raw/items.csv"
+  log_level: "INFO"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true  # Development only
