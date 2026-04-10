@@ -1,0 +1,13 @@
+﻿# Secrets & Local Config
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# Runtime Data & Logs
+data/raw/*.csv
+logs/*.log
