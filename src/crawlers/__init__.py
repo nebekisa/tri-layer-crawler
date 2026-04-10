@@ -9,5 +9,6 @@ This package contains all Scrapy-related components:
 """
 
 from .items import CrawlerItem
+from .pipelines import ValidationPipeline, CsvWriterPipeline
 
-__all__ = ['CrawlerItem']
+__all__ = ['CrawlerItem', 'ValidationPipeline', 'CsvWriterPipeline']
