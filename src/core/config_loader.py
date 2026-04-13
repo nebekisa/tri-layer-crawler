@@ -22,12 +22,14 @@ from pydantic import BaseModel, ValidationError
 # -----------------------------------------------------------------------------
 
 class CrawlerConfig(BaseModel):
-    """Configuration specific to the Scrapy crawler."""
+    """Configuration specific to the crawler."""
     name: str
     start_urls: List[str]
     user_agent: str
     download_delay: float
-    concurrent_requests: int
+    concurrent_requests: int = 4      # NEW with default
+    request_timeout: int = 30         # NEW with default
+    max_retries: int = 3              # NEW with default
 
 class StorageConfig(BaseModel):
     """Configuration for data persistence."""
