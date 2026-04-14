@@ -32,12 +32,12 @@ class CrawlerConfig(BaseModel):
     max_retries: int = 3              # NEW with default
 class DatabaseConfig(BaseModel):
     """Configuration for database connection."""
-    type: str = "sqlite"  # sqlite or postgresql
-    host: str = "localhost"
-    port: int = 5433
-    name: str = "tri_layer_crawler"
-    user: str = "postgres"
-    password: str = ""
+    type: str = os.getenv("DATABASE_TYPE", "postgresql")
+    host: str = os.getenv("DATABASE_HOST", "localhost")
+    port: int = int(os.getenv("DATABASE_PORT", "5433"))
+    name: str = os.getenv("DATABASE_NAME", "tri_layer_crawler")
+    user: str = os.getenv("DATABASE_USER", "crawler_user")
+    password: str = os.getenv("DATABASE_PASSWORD", "CrawlerPass2024!")
     pool_size: int = 5
     max_overflow: int = 10
 
