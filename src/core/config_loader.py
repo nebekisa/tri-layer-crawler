@@ -30,10 +30,21 @@ class CrawlerConfig(BaseModel):
     concurrent_requests: int = 4      # NEW with default
     request_timeout: int = 30         # NEW with default
     max_retries: int = 3              # NEW with default
+class DatabaseConfig(BaseModel):
+    """Configuration for database connection."""
+    type: str = "sqlite"  # sqlite or postgresql
+    host: str = "localhost"
+    port: int = 5433
+    name: str = "tri_layer_crawler"
+    user: str = "postgres"
+    password: str = ""
+    pool_size: int = 5
+    max_overflow: int = 10
 
 class StorageConfig(BaseModel):
     """Configuration for data persistence."""
     csv_output_path: str
+    database_path: str = "data/tri_layer.db"
     log_level: str
 
 class APIConfig(BaseModel):
@@ -43,10 +54,11 @@ class APIConfig(BaseModel):
     reload: bool
 
 class Settings(BaseModel):
-    """Root configuration model aggregating all sub-configs."""
+    """Root configuration model."""
     crawler: CrawlerConfig
     storage: StorageConfig
     api: APIConfig
+    database: DatabaseConfig = DatabaseConfig()  # NEW
 
 # -----------------------------------------------------------------------------
 # Configuration Loader Singleton

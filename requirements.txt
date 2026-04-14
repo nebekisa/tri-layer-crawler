@@ -10,3 +10,7 @@ uvicorn[standard]==0.25.0
 
 # Utilities
 chardet==5.2.0
+# Database
+sqlalchemy==2.0.25
+alembic==1.13.1
+psycopg2-binary==2.9.10

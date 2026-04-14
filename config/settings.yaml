@@ -15,7 +15,24 @@ crawler:
 
 storage:
   csv_output_path: "data/raw/items.csv"
+  database_path: "data/tri_layer.db"  # NEW: SQLite database path
   log_level: "INFO"
+# NEW: Database configuration
+database:
+  # Use 'sqlite' for development without PostgreSQL
+  # Use 'postgresql' for production
+  type: "postgresql"  # Change from 'sqlite' to 'postgresql'
+  
+  # PostgreSQL settings
+  host: "localhost"
+  port: 5433
+  name: "tri_layer_crawler"
+  user: "crawler_user"
+  password: "CrawlerPass2024!"
+  
+  # Connection pool settings
+  pool_size: 5
+  max_overflow: 10
 
 api:
   host: "0.0.0.0"
