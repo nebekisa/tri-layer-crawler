@@ -202,7 +202,14 @@ class ConcurrentCrawler:
         if not self.results:
             logger.warning("No results to save")
             return
-        
+        try:
+            from src.repositories.db_repository import DatabaseRepository
+            repo = DatabaseRepository()
+            saved_count = repo.save_batch(self.results)
+            repo.close()
+            logger.info(f"[OK] Saved {saved_count} items to database")
+        except Exception as e:
+            logger.error(f"[FAIL] Database save failed: {e}")
         if output_path is None:
             settings = get_settings()
             project_root = Path(__file__).parent.parent.parent
