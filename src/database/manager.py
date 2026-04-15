@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool, QueuePool
 from src.core.config_loader import get_settings
+from src.database.models import Base
 
 # Import Base after engine creation to avoid circular imports
 def _get_base():

@@ -1,154 +1,192 @@
 """
-Configuration loader with environment variable support.
+Production logging configuration with JSON formatting and log levels.
 """
 
+import logging
+import json
+import sys
 import os
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
-
-import yaml
-from pydantic import BaseModel, ValidationError
+from typing import Any, Dict, Optional
 
 
-class CrawlerConfig(BaseModel):
-    """Surface web crawler configuration."""
-    name: str
-    start_urls: List[str]
-    user_agent: str
-    download_delay: float
-    concurrent_requests: int = 4
-    request_timeout: int = 30
-    max_retries: int = 3
-
-
-class DeepCrawlerAuthConfig(BaseModel):
-    """Authentication configuration for deep crawler."""
-    enabled: bool = False
-    login_url: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    cookies_file: Optional[str] = None
-
-
-class DeepCrawlerConfig(BaseModel):
-    """Deep web crawler configuration (Playwright)."""
-    enabled: bool = True
-    browser_type: str = "chromium"
-    headless: bool = True
-    viewport_width: int = 1920
-    viewport_height: int = 1080
-    timeout: int = 30000
-    wait_until: str = "networkidle"
-    max_concurrent_browsers: int = 2
-    screenshot_enabled: bool = True
-    screenshot_quality: int = 85
-    user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    js_enabled: bool = True
-    wait_for_selector: Optional[str] = None
-    scroll_to_bottom: bool = False
-    scroll_pause: int = 2
-    auth: DeepCrawlerAuthConfig = DeepCrawlerAuthConfig()
-
-
-class StorageConfig(BaseModel):
-    """Storage configuration."""
-    csv_output_path: str
-    database_path: str = "data/tri_layer.db"
-    log_level: str
-
-
-class APIConfig(BaseModel):
-    """API configuration."""
-    host: str
-    port: int
-    reload: bool
-
-
-class DatabaseConfig(BaseModel):
-    """Database configuration."""
-    type: str = "sqlite"
-    host: str = "localhost"
-    port: int = 5432
-    name: str = "tri_layer_crawler"
-    user: str = "postgres"
-    password: str = ""
-    pool_size: int = 5
-    max_overflow: int = 10
+class JSONFormatter(logging.Formatter):
+    """
+    JSON formatter for structured logging.
+    Compatible with ELK stack, Datadog, Loki.
+    """
     
-    @classmethod
-    def from_env(cls, base_config: dict) -> dict:
-        """Override config with environment variables."""
-        env_mapping = {
-            'DATABASE_TYPE': 'type',
-            'DATABASE_HOST': 'host',
-            'DATABASE_PORT': 'port',
-            'DATABASE_NAME': 'name',
-            'DATABASE_USER': 'user',
-            'DATABASE_PASSWORD': 'password',
+    def __init__(self, service_name: str = "tri-layer-crawler"):
+        super().__init__()
+        self.service_name = service_name
+    
+    def format(self, record: logging.LogRecord) -> str:
+        log_data: Dict[str, Any] = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "service": self.service_name,
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+            "pid": os.getpid(),
         }
         
-        for env_var, config_key in env_mapping.items():
-            if os.getenv(env_var):
-                base_config[config_key] = os.getenv(env_var)
-                if config_key == 'port':
-                    base_config[config_key] = int(os.getenv(env_var))
+        # Add exception info if present
+        if record.exc_info:
+            log_data["exception"] = {
+                "type": record.exc_info[0].__name__ if record.exc_info[0] else None,
+                "message": str(record.exc_info[1]) if record.exc_info[1] else None,
+                "traceback": self.formatException(record.exc_info)
+            }
         
-        return base_config
+        # Add extra fields if present
+        if hasattr(record, "extra_data"):
+            log_data["extra"] = record.extra_data
+        
+        return json.dumps(log_data)
 
 
-class Settings(BaseModel):
-    """Root configuration model."""
-    crawler: CrawlerConfig
-    deep_crawler: DeepCrawlerConfig = DeepCrawlerConfig()  # NEW
-    storage: StorageConfig
-    api: APIConfig
-    database: DatabaseConfig = DatabaseConfig()
-
-
-class ConfigurationError(Exception):
-    """Configuration error."""
-    pass
-
-
-class ConfigLoader:
-    """Configuration loader singleton."""
+class ConsoleFormatter(logging.Formatter):
+    """Human-readable console formatter with colors."""
     
-    _instance: Optional['Settings'] = None
-    _config_path: Path = Path(__file__).parent.parent.parent / "config" / "settings.yaml"
+    COLORS = {
+        'DEBUG': '\033[36m',     # Cyan
+        'INFO': '\033[32m',      # Green
+        'WARNING': '\033[33m',   # Yellow
+        'ERROR': '\033[31m',     # Red
+        'CRITICAL': '\033[35m',  # Magenta
+        'RESET': '\033[0m'       # Reset
+    }
     
-    @classmethod
-    def get_settings(cls) -> Settings:
-        if cls._instance is None:
-            cls._instance = cls._load_and_validate()
-        return cls._instance
-    
-    @classmethod
-    def _load_and_validate(cls) -> Settings:
-        if not cls._config_path.exists():
-            raise ConfigurationError(f"Configuration file not found: {cls._config_path}")
+    def format(self, record: logging.LogRecord) -> str:
+        color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
+        reset = self.COLORS['RESET']
         
-        with open(cls._config_path, 'r', encoding='utf-8') as f:
-            raw_config = yaml.safe_load(f)
+        timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Apply environment variable overrides
-        if 'database' in raw_config:
-            raw_config['database'] = DatabaseConfig.from_env(raw_config['database'])
-        
-        # Ensure deep_crawler section exists
-        if 'deep_crawler' not in raw_config:
-            raw_config['deep_crawler'] = {}
-        
-        try:
-            return Settings(**raw_config)
-        except ValidationError as e:
-            raise ConfigurationError(f"Configuration validation failed: {e.errors()}")
-    
-    @classmethod
-    def reload(cls) -> Settings:
-        cls._instance = None
-        return cls.get_settings()
+        return (
+            f"{color}[{record.levelname}]{reset} "
+            f"{timestamp} - "
+            f"{record.name} - "
+            f"{record.getMessage()}"
+        )
 
 
-def get_settings() -> Settings:
-    """Get application settings."""
-    return ConfigLoader.get_settings()
+def setup_logging(
+    log_level: str = "INFO",
+    log_file: str = "logs/app.log",
+    json_format: bool = False,
+    service_name: str = "tri-layer-crawler"
+) -> None:
+    """
+    Configure application logging.
+    
+    Args:
+        log_level: Logging level
+        log_file: Path to log file
+        json_format: Use JSON format for file logs
+        service_name: Service name for logs
+    """
+    # Create logs directory
+    Path("logs").mkdir(exist_ok=True)
+    
+    # Root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, log_level.upper()))
+    
+    # Remove existing handlers
+    root_logger.handlers.clear()
+    
+    # Console handler (always human-readable)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(ConsoleFormatter())
+    console_handler.setLevel(logging.INFO)
+    root_logger.addHandler(console_handler)
+    
+    # File handler (JSON in production)
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    if json_format:
+        file_handler.setFormatter(JSONFormatter(service_name))
+    else:
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+    file_handler.setLevel(logging.DEBUG)
+    root_logger.addHandler(file_handler)
+    
+    # Error file handler (separate file for errors)
+    error_handler = logging.FileHandler("logs/error.log", encoding='utf-8')
+    error_handler.setFormatter(JSONFormatter(service_name) if json_format else logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ))
+    error_handler.setLevel(logging.ERROR)
+    root_logger.addHandler(error_handler)
+    
+    # Quiet down noisy third-party loggers
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("playwright").setLevel(logging.WARNING)
+    logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
+
+
+class LoggerMixin:
+    """Mixin to add logging capability to any class."""
+    
+    @property
+    def logger(self) -> logging.Logger:
+        if not hasattr(self, '_logger'):
+            self._logger = logging.getLogger(self.__class__.__name__)
+        return self._logger
+
+
+class MetricsLogger:
+    """Log metrics in structured format for Prometheus/Loki."""
+    
+    @staticmethod
+    def log_crawl_metrics(
+        url: str,
+        duration_ms: float,
+        bytes_downloaded: int,
+        status_code: int,
+        success: bool
+    ) -> None:
+        """Log crawl metrics."""
+        logger = logging.getLogger("metrics.crawler")
+        logger.info(
+            "Crawl completed",
+            extra={
+                "extra_data": {
+                    "url": url,
+                    "duration_ms": duration_ms,
+                    "bytes_downloaded": bytes_downloaded,
+                    "status_code": status_code,
+                    "success": success,
+                    "metric_type": "crawl"
+                }
+            }
+        )
+    
+    @staticmethod
+    def log_analysis_metrics(
+        item_id: int,
+        entities_found: int,
+        sentiment_score: float,
+        processing_time_ms: float
+    ) -> None:
+        """Log AI analysis metrics."""
+        logger = logging.getLogger("metrics.analytics")
+        logger.info(
+            "Analysis completed",
+            extra={
+                "extra_data": {
+                    "item_id": item_id,
+                    "entities_found": entities_found,
+                    "sentiment_score": sentiment_score,
+                    "processing_time_ms": processing_time_ms,
+                    "metric_type": "analysis"
+                }
+            }
+        )

@@ -1,0 +1,48 @@
+groups:
+  - name: crawler_alerts
+    interval: 30s
+    rules:
+      - alert: CrawlerDown
+        expr: up{job="tri-layer-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Crawler API is down"
+          description: "API endpoint {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: HighErrorRate
+        expr: rate(crawler_errors_total[5m]) / rate(crawler_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High crawler error rate"
+          description: "Error rate is {{ $value | humanizePercentage }} over last 5 minutes."
+
+      - alert: SlowProcessing
+        expr: histogram_quantile(0.95, rate(analysis_duration_seconds_bucket[5m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow AI processing"
+          description: "p95 processing time is {{ $value }}s (threshold: 5s)."
+
+      - alert: DatabaseConnectionFailure
+        expr: database_connected == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection failed"
+          description: "Cannot connect to database."
+
+      - alert: DiskSpaceLow
+        expr: disk_free_percent{mountpoint="/data"} < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk {{ $labels.mountpoint }} has {{ $value }}% free."
