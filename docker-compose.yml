@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,66 +9,124 @@ services:
       POSTGRES_USER: crawler_user
       POSTGRES_PASSWORD: CrawlerPass2024!
     ports:
-      - "5433:5432"  # Map container's 5432 to host's 5433
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crawler_user -d tri_layer_crawler"]
+      test: ["CMD-SHELL", "pg_isready -U crawler_user"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - tri-layer-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   api:
     build: .
     container_name: tri-layer-api
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"
+
     environment:
       - DATABASE_TYPE=postgresql
-      - DATABASE_HOST=postgres           # Docker service name
-      - DATABASE_PORT=5432               # Internal container port (not 5433)
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5433
       - DATABASE_NAME=tri_layer_crawler
       - DATABASE_USER=crawler_user
       - DATABASE_PASSWORD=CrawlerPass2024!
+      - JSON_LOGS=true  # Production JSON logging
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./config:/app/config
-    depends_on:
-      postgres:
-        condition: service_healthy
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
     networks:
       - tri-layer-network
-    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   crawler:
     build: .
     container_name: tri-layer-crawler
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       - DATABASE_TYPE=postgresql
-      - DATABASE_HOST=postgres           # Docker service name (fixed duplicate)
-      - DATABASE_PORT=5432               # Internal container port
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5433
       - DATABASE_NAME=tri_layer_crawler
       - DATABASE_USER=crawler_user
       - DATABASE_PASSWORD=CrawlerPass2024!
+      - JSON_LOGS=true
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./config:/app/config
-    depends_on:
-      postgres:
-        condition: service_healthy
+    command: python run_concurrent.py
     networks:
       - tri-layer-network
-    command: python run_concurrent.py
-    profiles:
-      - crawler
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tri-layer-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - tri-layer-network
+    depends_on:
+      - api
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tri-layer-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - tri-layer-network
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
 networks:
   tri-layer-network:
     driver: bridge
-
-volumes:
-  postgres_data:

@@ -14,3 +14,16 @@ chardet==5.2.0
 sqlalchemy==2.0.25
 alembic==1.13.1
 psycopg2-binary==2.9.10
+python-json-logger==2.0.7
+streamlit==1.29.0
+pandas==2.1.4
+plotly==5.18.0
+# AI/NLP Analytics
+spacy==3.7.2
+textblob==0.17.1
+yake==0.4.8
+vaderSentiment==3.3.2
+textstat==0.7.3
+scikit-learn==1.3.2
+# Deep Web Crawling
+playwright==1.40.0

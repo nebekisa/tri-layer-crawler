@@ -1,61 +1,25 @@
 """
-Runner for concurrent crawler.
+Runner for concurrent crawler with structured logging.
 """
 
-import logging
 import sys
 from pathlib import Path
 
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from src.utils.logging_config import setup_logging, LoggerAdapter
 from src.crawlers.concurrent_crawler import ConcurrentCrawler
+import logging
 
-# Fix Windows console encoding for logging
-if sys.platform == 'win32':
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+# Setup structured logging
+setup_logging(log_level="INFO", json_logs=True)
 
-# Ensure logs directory exists
-Path("logs").mkdir(exist_ok=True)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('logs/crawler.log', encoding='utf-8'),  # File handles UTF-8 fine
-        logging.StreamHandler(sys.stdout)  # Use fixed stdout
-    ]
+# Create logger with context
+logger = LoggerAdapter(
+    logging.getLogger("runner"),
+    {"component": "main", "version": "2.0.0"}
 )
-
-# Replace Unicode characters with ASCII equivalents in log messages
-class AsciiLogger:
-    """Wrapper to replace Unicode with ASCII for console compatibility."""
-    def __init__(self, logger):
-        self.logger = logger
-    
-    def _clean(self, msg):
-        replacements = {
-            '✓': '[OK]',
-            '✗': '[FAIL]',
-            '⚠': '[WARN]',
-            '→': '->',
-            '…': '...',
-        }
-        for uni, ascii_val in replacements.items():
-            msg = msg.replace(uni, ascii_val)
-        return msg
-    
-    def info(self, msg, *args, **kwargs):
-        return self.logger.info(self._clean(msg), *args, **kwargs)
-    
-    def warning(self, msg, *args, **kwargs):
-        return self.logger.warning(self._clean(msg), *args, **kwargs)
-    
-    def error(self, msg, *args, **kwargs):
-        return self.logger.error(self._clean(msg), *args, **kwargs)
-    
-    def debug(self, msg, *args, **kwargs):
-        return self.logger.debug(self._clean(msg), *args, **kwargs)
 
 
 def main():
@@ -63,20 +27,36 @@ def main():
     print("Tri-Layer Intelligence Crawler - Production Mode")
     print("=" * 60)
     
-    crawler = ConcurrentCrawler()
-    results = crawler.crawl()
+    logger.info("Starting crawler", extra={"extra_data": {"mode": "production"}})
     
-    if results:
-        crawler.save_results()
+    crawler = ConcurrentCrawler()
+    
+    try:
+        results = crawler.crawl()
         
-        print("\n" + "=" * 60)
-        print(f"[OK] Successfully crawled {len(results)} URLs")
-        print("=" * 60)
-        
-        for item in results:
-            print(f"  - {item['title'][:60]}... ({item['domain']})")
-    else:
-        print("\n[FAIL] No results extracted")
+        if results:
+            crawler.save_results()
+            
+            print("\n" + "=" * 60)
+            print(f"[OK] Successfully crawled {len(results)} URLs")
+            print("=" * 60)
+            
+            for item in results:
+                print(f"  - {item['title'][:60]}... ({item['domain']})")
+            
+            logger.info(
+                "Crawl completed successfully",
+                extra={"extra_data": {"urls_crawled": len(results)}}
+            )
+        else:
+            print("\n[FAIL] No results extracted")
+            logger.warning("No results extracted")
+            
+    except Exception as e:
+        logger.exception("Crawler failed with exception")
+        raise
+    finally:
+        crawler.close()
 
 
 if __name__ == "__main__":

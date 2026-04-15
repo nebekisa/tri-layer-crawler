@@ -1,4 +1,4 @@
-# Tri-Layer Intelligence Crawler - Configuration
+﻿# Tri-Layer Intelligence Crawler - Configuration
 # Version: 1.0.0
 # DO NOT COMMIT SECRETS HERE - Use .env for sensitive data
 
@@ -19,22 +19,69 @@ storage:
   log_level: "INFO"
 # NEW: Database configuration
 database:
-  # Use 'sqlite' for development without PostgreSQL
-  # Use 'postgresql' for production
-  type: "postgresql"  # Change from 'sqlite' to 'postgresql'
-  
-  # PostgreSQL settings
-  host: "localhost"
+  type: "postgresql"
+  host: "host.docker.internal"
   port: 5433
   name: "tri_layer_crawler"
   user: "crawler_user"
   password: "CrawlerPass2024!"
-  
-  # Connection pool settings
   pool_size: 5
+  max_overflow: 10
+  max_overflow: 10
   max_overflow: 10
 
 api:
   host: "0.0.0.0"
   port: 8000
   reload: true  # Development only
+# Deep Web Crawling Configuration
+deep_crawler:
+  enabled: true
+  browser_type: "chromium"  # chromium, firefox, webkit
+  headless: true
+  viewport_width: 1920
+  viewport_height: 1080
+  timeout: 30000  # milliseconds
+  wait_until: "networkidle"  # load, domcontentloaded, networkidle
+  max_concurrent_browsers: 2
+  screenshot_enabled: true
+  screenshot_quality: 85  # JPEG quality
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  
+  # JavaScript execution settings
+  js_enabled: true
+  wait_for_selector: null  # CSS selector to wait for
+  scroll_to_bottom: false
+  scroll_pause: 2  # seconds between scrolls
+  
+  # Authentication (optional)
+  auth:
+    enabled: false
+    login_url: null
+    username: null
+    password: null
+    cookies_file: "config/cookies.json"
+
+# Deep Web Crawling Configuration
+deep_crawler:
+  enabled: true
+  browser_type: "chromium"
+  headless: true
+  viewport_width: 1920
+  viewport_height: 1080
+  timeout: 30000
+  wait_until: "networkidle"
+  max_concurrent_browsers: 2
+  screenshot_enabled: true
+  screenshot_quality: 85
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  js_enabled: true
+  wait_for_selector: null
+  scroll_to_bottom: false
+  scroll_pause: 2
+  auth:
+    enabled: false
+    login_url: null
+    username: null
+    password: null
+    cookies_file: "config/cookies.json"

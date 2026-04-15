@@ -1,15 +1,19 @@
 """
 Database connection and session management.
-Supports both SQLite (dev) and PostgreSQL (prod).
 """
 
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool, QueuePool
-
-from src.database.models import Base
 from src.core.config_loader import get_settings
+
+# Import Base after engine creation to avoid circular imports
+def _get_base():
+    from src.database.models import Base
+    return Base
+
+
 
 
 class DatabaseManager:
@@ -109,3 +113,11 @@ def get_db_manager() -> DatabaseManager:
 def get_db_session() -> Session:
     """Get a database session."""
     return get_db_manager().get_session()
+
+def get_db_session_safe():
+    """Get database session or return None if unavailable."""
+    try:
+        return get_db_session()
+    except Exception as e:
+        logger.warning(f"Database unavailable: {e}")
+        return None

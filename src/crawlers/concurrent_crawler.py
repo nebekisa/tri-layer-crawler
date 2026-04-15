@@ -194,6 +194,50 @@ class ConcurrentCrawler:
         
         # Fallback
         return urlparse(url).path.split('/')[-1] or url
+            # In src/crawlers/concurrent_crawler.py
+    def crawl_surface_only(self, urls: List[str]) -> List[Dict]:
+        """
+        Crawl URLs without saving to database.
+        
+        Args:
+            urls: List of URLs to crawl
+            
+        Returns:
+            List of extracted items
+        """
+        original_urls = self.start_urls
+        self.start_urls = urls
+        
+        # Temporarily override results storage
+        temp_results = []
+        
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_url = {
+                executor.submit(self._crawl_with_retry, url): url 
+                for url in urls
+            }
+            
+            for future in as_completed(future_to_url):
+                url = future_to_url[future]
+                self.stats.record_attempt(url)
+                
+                try:
+                    result = future.result()
+                    if result:
+                        temp_results.append(result)
+                        self.stats.record_success(
+                            url,
+                            len(result.get('content', '')),
+                            result.get('domain', 'unknown')
+                        )
+                    else:
+                        self.stats.record_failure(url, "No result")
+                except Exception as e:
+                    self.stats.record_failure(url, str(e))
+                    logger.error(f"Failed {url}: {e}")
+        
+        self.start_urls = original_urls
+        return temp_results
     
     def save_results(self, output_path: Optional[Path] = None):
         """
@@ -232,3 +276,9 @@ class ConcurrentCrawler:
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(self.results, f, indent=2, ensure_ascii=False)
         logger.info(f"[OK] JSON backup saved to {json_path}")
+    def close(self):
+        """Clean up resources."""
+        # Close database session if any
+        if hasattr(self, 'db_session') and self.db_session:
+            self.db_session.close()
+        logger.debug("Crawler resources cleaned up")

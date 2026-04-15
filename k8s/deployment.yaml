@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tri-layer-api
+  labels:
+    app: tri-layer-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tri-layer-api
+  template:
+    metadata:
+      labels:
+        app: tri-layer-api
+    spec:
+      containers:
+      - name: api
+        image: tri-layer-crawler:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_TYPE
+          value: "postgresql"
+        - name: DATABASE_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: host
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        - name: JSON_LOGS
+          value: "true"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tri-layer-api
+spec:
+  selector:
+    app: tri-layer-api
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: LoadBalancer
