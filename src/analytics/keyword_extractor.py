@@ -88,9 +88,9 @@ class KeywordExtractor:
                 normalized_score = 1.0 / (1.0 + score)
                 
                 results.append(KeywordResult(
-                    keyword=kw.strip(),
-                    score=round(normalized_score, 4),
-                    ngram=ngram
+                    keyword=str(kw.strip()),
+                    score=float(normalized_score),  # CONVERT TO PYTHON FLOAT
+                    ngram=int(ngram)  
                 ))
             
             logger.debug(f"Extracted {len(results)} keywords from {len(text)} chars")
@@ -99,6 +99,7 @@ class KeywordExtractor:
         except Exception as e:
             logger.error(f"Keyword extraction failed: {e}")
             return []
+     
     
     def extract_ngrams(self, text: str, ngram_size: int = 1) -> List[KeywordResult]:
         """

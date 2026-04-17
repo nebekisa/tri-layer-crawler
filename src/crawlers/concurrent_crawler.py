@@ -278,7 +278,5 @@ class ConcurrentCrawler:
         logger.info(f"[OK] JSON backup saved to {json_path}")
     def close(self):
         """Clean up resources."""
-        # Close database session if any
-        if hasattr(self, 'db_session') and self.db_session:
-            self.db_session.close()
-        logger.debug("Crawler resources cleaned up")
+        if hasattr(self, 'stats'):
+            logger.debug(f"Crawler closed. Stats: {self.stats.urls_succeeded} succeeded")

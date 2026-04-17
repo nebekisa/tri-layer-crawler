@@ -1,74 +1,284 @@
 {
-  "dashboard": {
-    "title": "Tri-Layer Intelligence Crawler",
-    "panels": [
+  "title": "🌐 Tri-Layer Intelligence Platform",
+  "uid": "tri-layer-enterprise-v3",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timezone": "utc",
+  "tags": ["intelligence", "crawler", "ai", "production", "enhanced"],
+  "templating": {
+    "list": [
       {
-        "title": "Crawl Rate",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(crawler_items_total[5m])",
-            "legendFormat": "Items/sec"
-          }
-        ]
+        "name": "domain",
+        "label": "Domain",
+        "type": "query",
+        "datasource": "Tri-Layer PostgreSQL",
+        "query": "SELECT DISTINCT domain FROM crawled_items ORDER BY domain",
+        "multi": true,
+        "includeAll": true,
+        "allValue": "*",
+        "current": { "text": "All", "value": ["*"] }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "📊 Total Pages",
+      "type": "stat",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 3 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS value FROM crawled_items WHERE ('$domain' = '*' OR domain = '$domain')",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
       },
-      {
-        "title": "Sentiment Distribution",
-        "type": "piechart",
-        "targets": [
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#FF7383", "value": 0 },
+              { "color": "#73BF69", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "✅ Success Rate",
+      "type": "stat",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 3 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT ROUND(100.0 * SUM(CASE WHEN status_code = 200 THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) AS value FROM crawled_items WHERE ('$domain' = '*' OR domain = '$domain')",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#FF7383", "value": 0 },
+              { "color": "#FADE2A", "value": 95 },
+              { "color": "#73BF69", "value": 99 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "📚 Grade Level",
+      "type": "gauge",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 3 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(AVG(flesch_kincaid_grade), 0) AS value FROM analysis_results",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "min": 0,
+          "max": 20,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#73BF69", "value": 0 },
+              { "color": "#5794F2", "value": 6 },
+              { "color": "#FADE2A", "value": 10 },
+              { "color": "#FF7383", "value": 14 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "😊 Sentiment",
+      "type": "gauge",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 3 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT COALESCE(AVG(sentiment_polarity), 0) AS value FROM analysis_results",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "min": -1,
+          "max": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#FF7383", "value": -1 },
+              { "color": "#FADE2A", "value": -0.1 },
+              { "color": "#73BF69", "value": 0.1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "📈 Crawl Volume",
+      "type": "timeseries",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 0, "y": 3, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT DATE_TRUNC('hour', crawled_at) AS time, COUNT(*) AS value FROM crawled_items WHERE ('$domain' = '*' OR domain = '$domain') GROUP BY time ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "calcs": ["sum", "last"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 30,
+            "lineInterpolation": "smooth",
+            "lineWidth": 3,
+            "pointSize": 6,
+            "showPoints": "auto"
+          },
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "🌐 Domains",
+      "type": "piechart",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 12, "y": 3, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT domain, COUNT(*) AS value FROM crawled_items WHERE ('$domain' = '*' OR domain = '$domain') GROUP BY domain",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "donut"
+      }
+    },
+    {
+      "id": 7,
+      "title": "🏷️ Top Entities",
+      "type": "barchart",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 18, "y": 3, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT entity_text, COUNT(*) AS count FROM extracted_entities GROUP BY entity_text ORDER BY count DESC LIMIT 6",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "xField": "entity_text",
+        "yField": "count"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "continuous-GrYlRd" }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "📋 Recent Activity",
+      "type": "table",
+      "datasource": "Tri-Layer PostgreSQL",
+      "gridPos": { "x": 0, "y": 11, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "datasource": "Tri-Layer PostgreSQL",
+          "format": "table",
+          "rawSql": "SELECT TO_CHAR(crawled_at, 'HH24:MI') AS \"Time\", SUBSTRING(title, 1, 45) AS \"Title\", domain AS \"Domain\", status_code AS \"Status\", content_length AS \"Size\" FROM crawled_items WHERE ('$domain' = '*' OR domain = '$domain') ORDER BY crawled_at DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "sortBy": [{ "displayName": "Time", "desc": true }]
+      },
+      "fieldConfig": {
+        "overrides": [
           {
-            "expr": "sentiment_positive_total",
-            "legendFormat": "Positive"
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "#73BF69", "value": 200 }, { "color": "#FF7383", "value": 400 }] } }
+            ]
           },
           {
-            "expr": "sentiment_negative_total",
-            "legendFormat": "Negative"
-          },
-          {
-            "expr": "sentiment_neutral_total",
-            "legendFormat": "Neutral"
-          }
-        ]
-      },
-      {
-        "title": "Processing Time",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.5, rate(analysis_duration_seconds_bucket[5m]))",
-            "legendFormat": "p50"
-          },
-          {
-            "expr": "histogram_quantile(0.95, rate(analysis_duration_seconds_bucket[5m]))",
-            "legendFormat": "p95"
-          }
-        ]
-      },
-      {
-        "title": "Error Rate",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "rate(crawler_errors_total[5m]) / rate(crawler_requests_total[5m])",
-            "legendFormat": "Error Rate"
-          }
-        ]
-      },
-      {
-        "title": "Active Crawlers",
-        "type": "gauge",
-        "targets": [
-          {
-            "expr": "crawler_active_workers",
-            "legendFormat": "Workers"
+            "matcher": { "id": "byName", "options": "Size" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
           }
         ]
       }
-    ],
-    "refresh": "10s",
-    "time": {
-      "from": "now-1h",
-      "to": "now"
     }
-  }
+  ]
 }

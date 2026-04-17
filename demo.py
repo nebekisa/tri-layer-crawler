@@ -1,10 +1,24 @@
 """
-Demonstration script showcasing all features.
+Demonstration script with Prometheus metrics.
 """
 
 import asyncio
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
 from src.crawlers.unified_crawler import UnifiedCrawler
 from src.analytics.pipeline import AnalyticsPipeline
+from prometheus_client import Counter, Histogram, Gauge, generate_latest
+import requests
+
+
+# Prometheus metrics
+crawled_pages = Counter('crawler_pages_total', 'Total pages crawled', ['method'])
+analysis_duration = Histogram('analysis_duration_seconds', 'Analysis processing time')
+entities_found = Counter('entities_found_total', 'Total entities extracted')
+sentiment_score = Gauge('sentiment_score', 'Sentiment polarity', ['url'])
 
 
 async def run_demo():
@@ -14,10 +28,9 @@ async def run_demo():
     print("🚀 TRI-LAYER INTELLIGENCE CRAWLER - FULL DEMO")
     print("=" * 70)
     
-    # Test URLs (mix of surface and deep)
     urls = [
-        "https://books.toscrape.com",           # Surface
-        "https://quotes.toscrape.com/js/",      # Deep (JS)
+        "https://books.toscrape.com",
+        "https://quotes.toscrape.com/js/",
     ]
     
     # 1. Crawl
@@ -31,12 +44,16 @@ async def run_demo():
         'authors': '.quote .author',
     }
     
-    # Use crawl_async since we're in async context
     results = await crawler.crawl_async(
         urls=urls,
         take_screenshots=True,
         extract_selectors=selectors
     )
+    
+    # Update metrics
+    for r in results:
+        if r:
+            crawled_pages.labels(method=r.get('crawl_method', 'unknown')).inc()
     
     print(f"\n✅ Crawled {len(results)} pages")
     
@@ -54,15 +71,23 @@ async def run_demo():
         
         content = item.get('content', '')
         if not content:
-            print("   ⚠️ No content extracted")
             continue
         
+        # Time the analysis
+        import time
+        start = time.perf_counter()
         analysis = pipeline.analyze(
             item_id=i,
             url=item['url'],
             content=content,
             title=item.get('title', '')
         )
+        duration = time.perf_counter() - start
+        analysis_duration.observe(duration)
+        
+        # Update metrics
+        entities_found.inc(len(analysis.entities))
+        sentiment_score.labels(url=item['url']).set(analysis.sentiment.polarity)
         
         print(f"   • Entities: {len(analysis.entities)} found")
         if analysis.entities:
@@ -71,25 +96,23 @@ async def run_demo():
         
         print(f"   • Sentiment: {analysis.sentiment.label.value} ({analysis.sentiment.polarity:+.3f})")
         print(f"   • Keywords: {len(analysis.keywords)} extracted")
-        if analysis.keywords:
-            top_kw = [k.keyword for k in analysis.keywords[:3]]
-            print(f"     → {', '.join(top_kw)}")
-        
-        print(f"   • Readability: Grade {analysis.readability.flesch_kincaid_grade:.1f}")
         print(f"   • Crawl Method: {item.get('crawl_method', 'unknown')}")
-        
-        if 'screenshot' in item:
-            print(f"   • Screenshot: {item['screenshot']}")
     
-    # 3. Summary
+    # 3. Push metrics to Prometheus Pushgateway (if available)
+    try:
+        requests.post('http://localhost:9091/metrics/job/crawler_demo', 
+                      data=generate_latest(), timeout=2)
+        print("\n📊 Metrics pushed to Prometheus")
+    except:
+        print("\n⚠️ Prometheus Pushgateway not available - metrics only in /metrics endpoint")
+    
     print("\n" + "=" * 70)
     print("📊 FINAL SUMMARY")
     print("=" * 70)
     print(f"✅ Total pages crawled: {len(results)}")
     print(f"✅ Surface crawls: {sum(1 for r in results if r and r.get('crawl_method') == 'surface')}")
     print(f"✅ Deep crawls: {sum(1 for r in results if r and r.get('crawl_method') == 'deep')}")
-    print(f"✅ Screenshots captured: {sum(1 for r in results if r and 'screenshot' in r)}")
-    print("\n🎉 DEMO COMPLETE - SYSTEM READY FOR PRODUCTION")
+    print("\n🎉 DEMO COMPLETE")
     print("=" * 70)
 
 

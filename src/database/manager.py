@@ -37,18 +37,23 @@ class DatabaseManager:
         return cls._instance
     
     def _get_connection_string(self) -> str:
-        """Build the appropriate connection string."""
-        settings = get_settings()
-        db_config = settings.database
+        """Build connection string - prioritize environment variables."""
+        import os
         
-        if db_config.type == "postgresql":
-            # PostgreSQL connection string
-            return (
-                f"postgresql://{db_config.user}:{db_config.password}"
-                f"@{db_config.host}:{db_config.port}/{db_config.name}"
-            )
+        # Check for Docker environment variables FIRST
+        db_type = os.getenv('DATABASE_TYPE', 'postgresql')
+        db_host = os.getenv('DATABASE_HOST', 'postgres')
+        db_port = os.getenv('DATABASE_PORT', '5432')
+        db_name = os.getenv('DATABASE_NAME', 'tri_layer_crawler')
+        db_user = os.getenv('DATABASE_USER', 'crawler_user')
+        db_password = os.getenv('DATABASE_PASSWORD', 'CrawlerPass2024!')
+        
+        if db_type == "postgresql":
+            conn_str = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+            print(f"[OK] PostgreSQL connecting to: {db_host}:{db_port}/{db_name}")
+            return conn_str
         else:
-            # SQLite connection string (fallback)
+            settings = get_settings()
             project_root = Path(__file__).parent.parent.parent
             db_path = project_root / settings.storage.database_path
             db_path.parent.mkdir(parents=True, exist_ok=True)

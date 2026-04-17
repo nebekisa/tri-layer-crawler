@@ -19,11 +19,6 @@ services:
       retries: 5
     networks:
       - tri-layer-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   api:
     build: .
@@ -33,15 +28,15 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
-
     environment:
+      - DOCKER_ENV=true
       - DATABASE_TYPE=postgresql
       - DATABASE_HOST=postgres
-      - DATABASE_PORT=5433
+      - DATABASE_PORT=5432
       - DATABASE_NAME=tri_layer_crawler
       - DATABASE_USER=crawler_user
       - DATABASE_PASSWORD=CrawlerPass2024!
-      - JSON_LOGS=true  # Production JSON logging
+      - JSON_LOGS=false
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -54,11 +49,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   crawler:
     build: .
@@ -67,13 +57,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      - DOCKER_ENV=true
       - DATABASE_TYPE=postgresql
       - DATABASE_HOST=postgres
-      - DATABASE_PORT=5433
+      - DATABASE_PORT=5432
       - DATABASE_NAME=tri_layer_crawler
       - DATABASE_USER=crawler_user
       - DATABASE_PASSWORD=CrawlerPass2024!
-      - JSON_LOGS=true
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -81,13 +71,7 @@ services:
     command: python run_concurrent.py
     networks:
       - tri-layer-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
-  # Prometheus for metrics collection
   prometheus:
     image: prom/prometheus:latest
     container_name: tri-layer-prometheus
@@ -101,10 +85,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
     networks:
       - tri-layer-network
-    depends_on:
-      - api
 
-  # Grafana for dashboards (optional)
   grafana:
     image: grafana/grafana:latest
     container_name: tri-layer-grafana
@@ -116,16 +97,11 @@ services:
       - grafana_data:/var/lib/grafana
     networks:
       - tri-layer-network
-    depends_on:
-      - prometheus
 
 volumes:
   postgres_data:
-    driver: local
   prometheus_data:
-    driver: local
   grafana_data:
-    driver: local
 
 networks:
   tri-layer-network:
