@@ -1,0 +1,11 @@
+{
+  "url_count": 200,
+  "crawled": 200,
+  "workers": 8,
+  "duration": 58.144153356552124,
+  "succeeded": 200,
+  "failed": 0,
+  "throughput": 3.4397267559054154,
+  "success_rate": 100.0,
+  "avg_latency_ms": 2238.4416937828064
+}

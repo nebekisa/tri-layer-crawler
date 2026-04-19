@@ -14,6 +14,7 @@ from src.core.logging_config import setup_logging
 from src.database.manager import get_db_manager
 from sqlalchemy import text
 from src.monitoring import setup_metrics
+from src.api.routers import search
 
 
 # Setup logging
@@ -48,6 +49,10 @@ def create_app() -> FastAPI:
     
     # Register routers
     app.include_router(items.router)
+    app.include_router(search.router)
+app.include_router(summarize.router)
+app.include_router(topics.router)
+app.include_router(tasks.router)
     
     # Health check endpoints
     @app.get("/health", tags=["monitoring"])
@@ -150,6 +155,7 @@ def create_app() -> FastAPI:
                 "items": "/api/v1/items",
                 "items_count": "/api/v1/items/count",
                 "items_by_domain": "/api/v1/items/domain/{domain}",
+                "search": "/api/v1/search"
             }
         }
     

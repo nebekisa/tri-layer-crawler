@@ -1,0 +1,35 @@
+[
+  {
+    "url_count": 100,
+    "crawled": 100,
+    "workers": 4,
+    "duration": 61.13560605049133,
+    "succeeded": 100,
+    "failed": 0,
+    "throughput": 1.6357080016089303,
+    "success_rate": 100.0,
+    "avg_latency_ms": 2382.311806678772
+  },
+  {
+    "url_count": 100,
+    "crawled": 100,
+    "workers": 8,
+    "duration": 34.42125153541565,
+    "succeeded": 100,
+    "failed": 0,
+    "throughput": 2.9051819890137085,
+    "success_rate": 100.0,
+    "avg_latency_ms": 2624.328784942627
+  },
+  {
+    "url_count": 100,
+    "crawled": 100,
+    "workers": 16,
+    "duration": 28.166656255722046,
+    "succeeded": 100,
+    "failed": 0,
+    "throughput": 3.550297170246647,
+    "success_rate": 100.0,
+    "avg_latency_ms": 4253.421759605408
+  }
+]

@@ -35,6 +35,26 @@ class DatabaseManager:
             cls._instance = super().__new__(cls)
             cls._instance._initialize()
         return cls._instance
+    def _get_connection_params(self):
+        """Get connection parameters based on environment."""
+        
+        # Check if running inside Docker
+        in_docker = os.getenv('DOCKER_ENV', 'false').lower() == 'true'
+        
+        if in_docker:
+            host = 'postgres'  # Docker service name
+            port = 5432        # Internal port
+        else:
+            host = 'localhost' # Windows host
+            port = 5433        # Mapped port
+        
+        return {
+            'host': host,
+            'port': port,
+            'database': os.getenv('DATABASE_NAME', 'tri_layer_crawler'),
+            'user': os.getenv('DATABASE_USER', 'crawler_user'),
+            'password': os.getenv('DATABASE_PASSWORD', 'CrawlerPass2024!')
+        }
     
     def _get_connection_string(self) -> str:
         """Build connection string - prioritize environment variables."""
