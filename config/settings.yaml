@@ -1,4 +1,4 @@
-crawler:
+﻿crawler:
   name: "CerberusCrawler"
   start_urls:
     - "https://books.toscrape.com"
@@ -50,3 +50,17 @@ database:
   password: "CrawlerPass2024!"
   pool_size: 5
   max_overflow: 10
+# Dark Web Configuration
+dark_crawler:
+  enabled: false  # Set to true to enable
+  tor_host: "tor"
+  tor_socks_port: 9050
+  tor_control_port: 9051
+  tor_password: "CrawlerPass2024!"
+  min_request_delay: 10
+  rotate_identity_after: 10  # requests
+  max_content_size: 10485760  # 10MB
+  
+  # Test .onion URLs (educational only)
+  test_urls:
+    - "http://checktoroadf7.onion"

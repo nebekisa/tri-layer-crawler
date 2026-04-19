@@ -97,11 +97,39 @@ services:
       - grafana_data:/var/lib/grafana
     networks:
       - tri-layer-network
+  tor:
+    image: dperson/torproxy:latest
+    container_name: tri-layer-tor
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+    environment:
+      - PASSWORD=CrawlerPass2024!
+    networks:
+      - tri-layer-network
+    restart: unless-stopped
+redis:
+    image: redis:7-alpine
+    container_name: tri-layer-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-RedisSecure2024!}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - crawler_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stoppe
 
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  redis_data:
 
 networks:
   tri-layer-network:

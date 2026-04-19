@@ -13,6 +13,7 @@ from src.core.config_loader import get_settings
 from src.core.logging_config import setup_logging
 from src.database.manager import get_db_manager
 from sqlalchemy import text
+from src.monitoring import setup_metrics
 
 
 # Setup logging
@@ -43,6 +44,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    setup_metrics(app)
     
     # Register routers
     app.include_router(items.router)
@@ -55,6 +57,16 @@ def create_app() -> FastAPI:
         Returns 200 if service is running.
         """
         return {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
+    
+    @app.get("/health/tor")
+    async def tor_health():
+        """Check Tor connection status."""
+        try:
+            from src.tor.tor_manager import TorManager
+            t = TorManager()
+            return {"tor_connected": t.verify_connection()}
+        except Exception as e:
+            return {"tor_connected": False, "error": str(e)}
     
     @app.get("/health/ready", tags=["monitoring"])
     async def readiness_check():
