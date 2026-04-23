@@ -1,0 +1,32 @@
+==================================================
+   ?? GRAFANA DASHBOARD IMPORT INSTRUCTIONS
+==================================================
+
+1. Open Grafana in your browser:
+   http://localhost:3000
+   
+   Login: admin / admin
+
+2. Import the dashboard:
+   - Click "+" (Create) in left sidebar
+   - Select "Import"
+   - Click "Upload JSON file"
+   - Select: dashboard/grafana-dashboard.json
+   - Click "Import"
+
+3. Dashboard will open automatically!
+
+==================================================
+   ?? TROUBLESHOOTING
+==================================================
+
+If panels show "No Data":
+   1. Run validation: .\validate_monitoring.ps1
+   2. Restart API: docker-compose restart api
+   3. Wait 30 seconds for metrics collection
+
+If Prometheus not scraping:
+   1. Check targets: http://localhost:9090/targets
+   2. Restart Prometheus: docker-compose restart prometheus
+
+==================================================

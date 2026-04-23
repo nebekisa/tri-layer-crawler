@@ -1,0 +1,17 @@
+{
+  "dashboard": {
+    "title": "Test - Will Work",
+    "uid": "test-working",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Prometheus Up",
+        "type": "stat",
+        "targets": [{"expr": "up", "format": "table"}],
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+      }
+    ],
+    "time": {"from": "now-5m", "to": "now"}
+  },
+  "overwrite": true
+}

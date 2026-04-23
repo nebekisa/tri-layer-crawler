@@ -1,0 +1,59 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - WORKING",
+    "uid": "tri-layer-working-v2",
+    "refresh": "10s",
+    "time": {"from": "now-15m", "to": "now"},
+    "panels": [
+      {
+        "id": 1,
+        "title": "Prometheus Status",
+        "type": "stat",
+        "targets": [{"expr": "up", "format": "table", "legendFormat": "{{job}}"}],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [{"type": "value", "value": "1", "text": "? UP"}],
+            "thresholds": {"steps": [{"color": "green", "value": 1}]}
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Total Items in Database",
+        "type": "stat",
+        "targets": [{"expr": "crawler_items_total", "format": "table"}],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 3,
+        "title": "Queue Pending",
+        "type": "stat",
+        "targets": [{"expr": "crawler_queue_pending", "format": "table"}],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 4,
+        "title": "HTTP Request Rate",
+        "type": "timeseries",
+        "targets": [{"expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{endpoint}}"}],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 5,
+        "title": "Items Over Time",
+        "type": "timeseries",
+        "targets": [{"expr": "crawler_items_total", "legendFormat": "Total Items"}],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 6,
+        "title": "Raw Metrics Table",
+        "type": "table",
+        "targets": [{"expr": "crawler_items_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6}
+      }
+    ]
+  },
+  "overwrite": true
+}

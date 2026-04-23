@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crawler-config
+  namespace: tri-layer-crawler
+data:
+  CRAWLER_USER_AGENT: "CerberusCrawler/1.0"
+  CRAWLER_DOWNLOAD_DELAY: "1.0"
+  CRAWLER_CONCURRENT_REQUESTS: "4"
+  CRAWLER_MAX_RETRIES: "3"
+  CRAWLER_TIMEOUT: "30"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  LOG_LEVEL: "INFO"

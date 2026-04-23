@@ -1,0 +1,172 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - Production Metrics",
+    "uid": "crawler-metrics",
+    "refresh": "10s",
+    "time": {"from": "now-3h", "to": "now"},
+    "timepicker": {"refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"]},
+    "tags": ["crawler", "production", "metrics"],
+    "panels": [
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 1,
+        "title": "?? TOTAL ITEMS CRAWLED",
+        "type": "stat",
+        "targets": [{"expr": "crawler_items_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 0, "w": 4, "h": 3},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {"steps": [{"color": "blue", "value": 0}]},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 2,
+        "title": "?? API STATUS",
+        "type": "stat",
+        "targets": [{"expr": "up{job=\"api\"}", "format": "table"}],
+        "gridPos": {"x": 4, "y": 0, "w": 4, "h": 3},
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [{"type": "value", "value": "1", "text": "? ONLINE"}],
+            "color": {"mode": "thresholds"},
+            "thresholds": {"steps": [{"color": "green", "value": 1}, {"color": "red", "value": 0}]}
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 3,
+        "title": "?? QUEUE PENDING",
+        "type": "stat",
+        "targets": [{"expr": "crawler_queue_pending", "format": "table"}],
+        "gridPos": {"x": 8, "y": 0, "w": 4, "h": 3},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {"steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 10},
+              {"color": "red", "value": 50}
+            ]}
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 4,
+        "title": "? SUCCESS RATE",
+        "type": "stat",
+        "targets": [{"expr": "sum(crawler_urls_total{status=\"success\"}) / sum(crawler_urls_total) * 100", "format": "table"}],
+        "gridPos": {"x": 12, "y": 0, "w": 4, "h": 3},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "color": {"mode": "thresholds"},
+            "thresholds": {"steps": [
+              {"color": "red", "value": 0},
+              {"color": "yellow", "value": 95},
+              {"color": "green", "value": 99}
+            ]}
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 5,
+        "title": "?? UNIQUE DOMAINS",
+        "type": "stat",
+        "targets": [{"expr": "count(count by(domain) (crawler_urls_total))", "format": "table"}],
+        "gridPos": {"x": 16, "y": 0, "w": 4, "h": 3}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 6,
+        "title": "? CRAWL RATE",
+        "type": "stat",
+        "targets": [{"expr": "round(rate(crawler_urls_total[1m]), 2)", "format": "table"}],
+        "gridPos": {"x": 20, "y": 0, "w": 4, "h": 3},
+        "fieldConfig": {"defaults": {"unit": "reqps"}}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 10,
+        "title": "?? TOTAL ITEMS GROWTH",
+        "type": "timeseries",
+        "targets": [{"expr": "crawler_items_total", "legendFormat": "Total Items"}],
+        "gridPos": {"x": 0, "y": 3, "w": 12, "h": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"fillOpacity": 20, "lineWidth": 2, "showPoints": "never"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 11,
+        "title": "??? CRAWL RATE (req/sec)",
+        "type": "timeseries",
+        "targets": [{"expr": "rate(crawler_urls_total[1m])", "legendFormat": "Crawl Rate"}],
+        "gridPos": {"x": 12, "y": 3, "w": 12, "h": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"fillOpacity": 20, "lineWidth": 2},
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 20,
+        "title": "??? TOP DOMAINS",
+        "type": "bargauge",
+        "targets": [{"expr": "topk(8, sum by(domain) (crawler_urls_total))", "legendFormat": "{{domain}}"}],
+        "gridPos": {"x": 0, "y": 11, "w": 12, "h": 6},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 21,
+        "title": "?? STATUS CODE DISTRIBUTION",
+        "type": "piechart",
+        "targets": [{"expr": "sum by(status) (crawler_urls_total)", "legendFormat": "{{status}}"}],
+        "gridPos": {"x": 12, "y": 11, "w": 12, "h": 6},
+        "fieldConfig": {
+          "defaults": {
+            "custom": {"pieType": "donut", "displayLabels": ["percent", "name"]}
+          },
+          "overrides": [
+            {"matcher": {"id": "byName", "options": "success"}, "properties": [{"id": "color", "value": "green"}]},
+            {"matcher": {"id": "byName", "options": "failure"}, "properties": [{"id": "color", "value": "red"}]}
+          ]
+        }
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 30,
+        "title": "?? RECENT CRAWL ACTIVITY",
+        "type": "table",
+        "targets": [{"expr": "crawler_urls_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 17, "w": 24, "h": 5},
+        "fieldConfig": {
+          "defaults": {
+            "custom": {"align": "auto"}
+          }
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-worker
+  namespace: tri-layer-crawler
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: celery-worker
+  template:
+    metadata:
+      labels:
+        app: celery-worker
+    spec:
+      containers:
+        - name: worker
+          image: tri-layer-crawler-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["celery"]
+          args: ["-A", "src.workers", "worker", "--loglevel=info", "-P", "solo", "--concurrency=2"]
+          env:
+            - name: DOCKER_ENV
+              value: "true"
+            - name: CELERY_BROKER_URL
+              value: redis://:$(REDIS_PASSWORD)@redis:6379/0
+            - name: CELERY_RESULT_BACKEND
+              value: redis://:$(REDIS_PASSWORD)@redis:6379/1
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crawler-secrets
+                  key: REDIS_PASSWORD
+            - name: DATABASE_HOST
+              value: postgres
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crawler-secrets
+                  key: DATABASE_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

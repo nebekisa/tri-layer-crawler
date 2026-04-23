@@ -1,0 +1,51 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler Monitor",
+    "uid": "tri-layer-final",
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Crawler URLs Total",
+        "type": "stat",
+        "targets": [{"expr": "crawler_urls_total", "format": "time_series"}],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 2,
+        "title": "Queue Pending",
+        "type": "stat",
+        "targets": [{"expr": "crawler_queue_pending", "format": "time_series"}],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 3,
+        "title": "Total Items",
+        "type": "stat",
+        "targets": [{"expr": "crawler_items_total", "format": "time_series"}],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 4,
+        "title": "API Uptime",
+        "type": "stat",
+        "targets": [{"expr": "up{job=\"api\"}", "format": "time_series"}],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 5,
+        "title": "HTTP Request Rate",
+        "type": "timeseries",
+        "targets": [{"expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{endpoint}}"}],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 6,
+        "title": "Crawler URLs by Domain",
+        "type": "barchart",
+        "targets": [{"expr": "crawler_urls_total", "legendFormat": "{{domain}}"}],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+      }
+    ]
+  }
+}

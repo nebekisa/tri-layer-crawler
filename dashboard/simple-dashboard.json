@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler (Simple)",
+    "uid": "tri-layer-simple",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Requests Total",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "http_requests_total",
+            "format": "time_series"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 2,
+        "title": "API Uptime",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"api\"}",
+            "format": "time_series"
+          }
+        ],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 3,
+        "title": "HTTP Request Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[1m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 4,
+        "title": "Crawler URLs Total",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "crawler_urls_total",
+            "format": "time_series"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 12, "w": 6, "h": 4}
+      },
+      {
+        "id": 5,
+        "title": "Queue Pending",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "crawler_queue_pending",
+            "format": "time_series"
+          }
+        ],
+        "gridPos": {"x": 6, "y": 12, "w": 6, "h": 4}
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "refresh": "10s"
+  }
+}

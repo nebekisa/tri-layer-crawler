@@ -1,0 +1,76 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - Prometheus",
+    "uid": "prometheus-metrics",
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"},
+    "panels": [
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 1,
+        "title": "?? TOTAL ITEMS",
+        "type": "stat",
+        "targets": [{"expr": "crawler_items_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 2,
+        "title": "?? API STATUS",
+        "type": "stat",
+        "targets": [{"expr": "up{job=\"api\"}", "format": "table"}],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {"defaults": {"mappings": [{"type": "value", "value": "1", "text": "? UP"}]}}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 3,
+        "title": "?? POSITIVE",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_positive_total", "format": "table"}],
+        "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 4,
+        "title": "?? NEUTRAL",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_neutral_total", "format": "table"}],
+        "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 5,
+        "title": "?? NEGATIVE",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_negative_total", "format": "table"}],
+        "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 6,
+        "title": "?? ITEMS GROWTH",
+        "type": "timeseries",
+        "targets": [{"expr": "crawler_items_total", "legendFormat": "Items"}],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 7,
+        "title": "?? CRAWL RATE",
+        "type": "timeseries",
+        "targets": [{"expr": "rate(crawler_urls_total[1m])", "legendFormat": "Rate"}],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 8,
+        "title": "??? TOP DOMAINS",
+        "type": "table",
+        "targets": [{"expr": "crawler_urls_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6}
+      }
+    ]
+  },
+  "overwrite": true
+}

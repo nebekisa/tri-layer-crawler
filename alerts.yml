@@ -1,0 +1,30 @@
+groups:
+  - name: crawler_alerts
+    interval: 30s
+    rules:
+      - alert: CrawlerDown
+        expr: up{job="api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Crawler API is down"
+          description: "API has been down for more than 2 minutes"
+          
+      - alert: HighQueueBacklog
+        expr: crawler_queue_pending > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue backlog detected"
+          description: "Queue has {{ $value }} pending URLs"
+          
+      - alert: LowSuccessRate
+        expr: (sum(crawler_urls_total{status="success"}) / sum(crawler_urls_total)) < 0.95
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low crawl success rate"
+          description: "Success rate is {{ $value | humanizePercentage }}"

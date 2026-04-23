@@ -1,0 +1,61 @@
+{
+  "dashboard": {
+    "title": "Sentiment Analysis - PostgreSQL",
+    "uid": "sentiment-postgres",
+    "refresh": "30s",
+    "panels": [
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 1,
+        "title": "?? POSITIVE",
+        "type": "stat",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'positive'",
+          "refId": "A"
+        }],
+        "gridPos": {"x": 0, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "green", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 2,
+        "title": "?? NEUTRAL",
+        "type": "stat",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'neutral'",
+          "refId": "A"
+        }],
+        "gridPos": {"x": 8, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "orange", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 3,
+        "title": "?? NEGATIVE",
+        "type": "stat",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'negative'",
+          "refId": "A"
+        }],
+        "gridPos": {"x": 16, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "red", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 4,
+        "title": "?? Sentiment Distribution (%)",
+        "type": "table",
+        "targets": [{
+          "format": "table",
+          "rawSql": "SELECT sentiment_label, COUNT(*) as count, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) as percentage FROM analysis_results GROUP BY sentiment_label ORDER BY count DESC",
+          "refId": "A"
+        }],
+        "gridPos": {"x": 0, "y": 6, "w": 24, "h": 8}
+      }
+    ]
+  },
+  "overwrite": true
+}

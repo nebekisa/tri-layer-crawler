@@ -1,0 +1,94 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - Production",
+    "uid": "tri-layer-prod",
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"},
+    "panels": [
+      {
+        "id": 1,
+        "title": "?? Total Items Crawled",
+        "type": "stat",
+        "targets": [{"expr": "crawler_items_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "thresholds": {"steps": [{"color": "green", "value": null}]}
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "?? API Status",
+        "type": "stat",
+        "targets": [{"expr": "up{job=\"api\"}", "format": "table"}],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [{"type": "value", "value": "1", "text": "? UP"}, {"type": "value", "value": "0", "text": "? DOWN"}],
+            "thresholds": {"steps": [{"color": "green", "value": 1}]}
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "?? Queue Pending",
+        "type": "stat",
+        "targets": [{"expr": "crawler_queue_pending", "format": "table"}],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 4,
+        "title": "? Success Rate",
+        "type": "stat",
+        "targets": [{
+          "expr": "sum(rate(crawler_urls_total{status=\"success\"}[5m])) / sum(rate(crawler_urls_total[5m])) * 100",
+          "format": "table"
+        }],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {"defaults": {"unit": "percent", "max": 100}}
+      },
+      {
+        "id": 5,
+        "title": "?? Items Growth",
+        "type": "timeseries",
+        "targets": [{"expr": "crawler_items_total", "legendFormat": "Total Items"}],
+        "gridPos": {"x": 0, "y": 4, "w": 24, "h": 10},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"fillOpacity": 20, "lineWidth": 2}
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "?? Crawl Rate (req/sec)",
+        "type": "timeseries",
+        "targets": [{"expr": "sum(rate(crawler_urls_total[1m]))", "legendFormat": "Crawl Rate"}],
+        "gridPos": {"x": 0, "y": 14, "w": 12, "h": 8}
+      },
+      {
+        "id": 7,
+        "title": "?? Sentiment Distribution",
+        "type": "piechart",
+        "targets": [
+          {"expr": "sentiment_positive_total", "legendFormat": "Positive"},
+          {"expr": "sentiment_neutral_total", "legendFormat": "Neutral"},
+          {"expr": "sentiment_negative_total", "legendFormat": "Negative"}
+        ],
+        "gridPos": {"x": 12, "y": 14, "w": 12, "h": 8},
+        "fieldConfig": {"defaults": {"custom": {"pieType": "donut"}}}
+      },
+      {
+        "id": 8,
+        "title": "??? Top Domains",
+        "type": "bargauge",
+        "targets": [{"expr": "topk(5, sum by(domain) (rate(crawler_urls_total[24h])))", "legendFormat": "{{domain}}"}],
+        "gridPos": {"x": 0, "y": 22, "w": 24, "h": 6}
+      }
+    ]
+  },
+  "overwrite": true
+}

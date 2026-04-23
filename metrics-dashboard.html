@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tri-Layer Crawler Metrics</title>
+    <meta http-equiv="refresh" content="10">
+    <style>
+        body { font-family: Arial; margin: 20px; background: #1a1a2e; color: white; }
+        .metric { background: #16213e; padding: 20px; margin: 10px; border-radius: 10px; display: inline-block; min-width: 200px; }
+        .value { font-size: 48px; font-weight: bold; color: #00d2ff; }
+        .label { color: #888; }
+        .container { display: flex; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <h1>??? Tri-Layer Crawler Metrics</h1>
+    <div class="container" id="metrics"></div>
+    <script>
+        async function fetchMetrics() {
+            try {
+                const response = await fetch('http://localhost:8000/metrics');
+                const text = await response.text();
+                
+                const metrics = {};
+                const lines = text.split('\n');
+                for (const line of lines) {
+                    if (!line.startsWith('#') && line.includes('{')) {
+                        const match = line.match(/^(\w+)\{.*\}\s+([0-9.]+)/);
+                        if (match) {
+                            const name = match[1];
+                            const value = match[2];
+                            if (!metrics[name]) metrics[name] = 0;
+                            metrics[name] += parseFloat(value) || 0;
+                        }
+                    } else if (!line.startsWith('#') && line.match(/^(\w+)\s+([0-9.]+)/)) {
+                        const match = line.match(/^(\w+)\s+([0-9.]+)/);
+                        if (match) {
+                            metrics[match[1]] = parseFloat(match[2]);
+                        }
+                    }
+                }
+                
+                const container = document.getElementById('metrics');
+                container.innerHTML = '';
+                
+                const displayMetrics = ['crawler_items_total', 'crawler_urls_total', 'crawler_queue_pending', 'http_requests_total'];
+                for (const name of displayMetrics) {
+                    if (metrics[name] !== undefined) {
+                        container.innerHTML += `
+                            <div class="metric">
+                                <div class="label">${name}</div>
+                                <div class="value">${metrics[name]}</div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (e) {
+                document.getElementById('metrics').innerHTML = '<div class="metric">Waiting for API...</div>';
+            }
+        }
+        fetchMetrics();
+        setInterval(fetchMetrics, 10000);
+    </script>
+</body>
+</html>

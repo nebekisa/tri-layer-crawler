@@ -1,0 +1,58 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer - Sentiment Stats",
+    "uid": "tri-layer-sentiment",
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"},
+    "panels": [
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 1,
+        "title": "?? POSITIVE",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_positive_total", "format": "table"}],
+        "gridPos": {"x": 0, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "green", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 2,
+        "title": "?? NEUTRAL",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_neutral_total", "format": "table"}],
+        "gridPos": {"x": 8, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "orange", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 3,
+        "title": "?? NEGATIVE",
+        "type": "stat",
+        "targets": [{"expr": "sentiment_negative_total", "format": "table"}],
+        "gridPos": {"x": 16, "y": 0, "w": 8, "h": 6},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "red", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 4,
+        "title": "?? Sentiment Distribution",
+        "type": "bargauge",
+        "targets": [
+          {"expr": "sentiment_positive_total", "legendFormat": "Positive", "refId": "A"},
+          {"expr": "sentiment_neutral_total", "legendFormat": "Neutral", "refId": "B"},
+          {"expr": "sentiment_negative_total", "legendFormat": "Negative", "refId": "C"}
+        ],
+        "gridPos": {"x": 0, "y": 6, "w": 24, "h": 10},
+        "fieldConfig": {
+          "defaults": {"color": {"mode": "palette-classic"}, "unit": "short"},
+          "overrides": [
+            {"matcher": {"id": "byName", "options": "Positive"}, "properties": [{"id": "color", "value": "green"}]},
+            {"matcher": {"id": "byName", "options": "Neutral"}, "properties": [{"id": "color", "value": "orange"}]},
+            {"matcher": {"id": "byName", "options": "Negative"}, "properties": [{"id": "color", "value": "red"}]}
+          ]
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

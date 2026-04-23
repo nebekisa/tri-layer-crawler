@@ -1,0 +1,23 @@
+# HELP crawler_items_total Total crawled items
+# TYPE crawler_items_total gauge
+crawler_items_total 598
+
+crawler_urls_total{domain="www.zyte.com",status="success"} 1
+crawler_urls_total{domain="www.goodreads.com",status="success"} 1
+crawler_urls_total{domain="books.toscrape.com",status="success"} 51
+crawler_urls_total{domain="quotes.toscrape.com",status="success"} 141
+crawler_urls_total{domain="example.com",status="success"} 46
+crawler_urls_total{domain="test.com",status="success"} 200
+crawler_urls_total{domain="httpbin.org",status="success"} 158
+
+# HELP sentiment_positive_total Positive sentiment count
+# TYPE sentiment_positive_total gauge
+sentiment_positive_total 94
+
+# HELP sentiment_neutral_total Neutral sentiment count
+# TYPE sentiment_neutral_total gauge
+sentiment_neutral_total 408
+
+# HELP sentiment_negative_total Negative sentiment count
+# TYPE sentiment_negative_total gauge
+sentiment_negative_total 0

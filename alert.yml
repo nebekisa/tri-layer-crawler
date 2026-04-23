@@ -1,0 +1,46 @@
+# alerts.yml
+groups:
+  - name: crawler_alerts
+    interval: 30s
+    rules:
+      # High failure rate
+      - alert: HighCrawlFailureRate
+        expr: |
+          (sum(rate(crawler_urls_total{status="failure"}[5m])) / 
+           sum(rate(crawler_urls_total[5m]))) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High crawl failure rate"
+          description: "Failure rate is {{ $value | humanizePercentage }}"
+      
+      # Queue backlog
+      - alert: QueueBacklog
+        expr: crawler_queue_pending > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue backlog detected"
+          description: "{{ $value }} URLs pending in queue"
+      
+      # Dead Letter Queue growing
+      - alert: DLQGrowing
+        expr: increase(crawler_queue_dlq[1h]) > 50
+        labels:
+          severity: critical
+        annotations:
+          summary: "Dead Letter Queue growing rapidly"
+      
+      # API high latency
+      - alert: APIHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API high latency detected"
+          description: "95th percentile latency > 1s on {{ $labels.endpoint }}"

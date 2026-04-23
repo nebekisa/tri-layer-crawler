@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 from src.core.config_loader import get_settings
 from src.utils.text_cleaner import clean_text
 from src.crawlers.stats import CrawlStats
+from src.repositories.db_repository import DatabaseRepository
 from src.utils.encoding_handler import decode_response_content
 
 logger = logging.getLogger(__name__)
@@ -173,6 +174,7 @@ class ConcurrentCrawler:
             'timestamp': datetime.utcnow().isoformat() + 'Z',
             'status_code': response.status_code,
             'domain': urlparse(url).netloc,
+            'raw_html': response.text,
         }
     
     def _extract_title(self, soup: BeautifulSoup, url: str) -> str:
@@ -241,19 +243,22 @@ class ConcurrentCrawler:
     
     def save_results(self, output_path: Optional[Path] = None):
         """
-        Save results to CSV and JSON.
+        Save results to database and CSV/JSON backup.
         """
         if not self.results:
             logger.warning("No results to save")
             return
+        
+        # Save to database
         try:
-            from src.repositories.db_repository import DatabaseRepository
             repo = DatabaseRepository()
             saved_count = repo.save_batch(self.results)
             repo.close()
             logger.info(f"[OK] Saved {saved_count} items to database")
         except Exception as e:
             logger.error(f"[FAIL] Database save failed: {e}")
+            import traceback
+            traceback.print_exc()
         if output_path is None:
             settings = get_settings()
             project_root = Path(__file__).parent.parent.parent

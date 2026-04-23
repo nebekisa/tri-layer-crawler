@@ -1,0 +1,23 @@
+# Tri-Layer Crawler - 20 Seed URLs
+https://books.toscrape.com
+https://quotes.toscrape.com
+http://books.toscrape.com/catalogue/page-1.html
+http://books.toscrape.com/catalogue/page-2.html
+http://books.toscrape.com/catalogue/page-3.html
+http://quotes.toscrape.com/page/1/
+http://quotes.toscrape.com/page/2/
+http://quotes.toscrape.com/page/3/
+http://quotes.toscrape.com/tag/inspirational/
+http://quotes.toscrape.com/tag/love/
+http://quotes.toscrape.com/tag/humor/
+http://quotes.toscrape.com/tag/life/
+http://quotes.toscrape.com/tag/books/
+http://quotes.toscrape.com/tag/reading/
+http://quotes.toscrape.com/tag/friendship/
+http://quotes.toscrape.com/tag/simile/
+http://quotes.toscrape.com/tag/truth/
+http://quotes.toscrape.com/tag/philosophy/
+http://quotes.toscrape.com/tag/wisdom/
+http://quotes.toscrape.com/tag/happiness/
+https://httpbin.org/html
+https://httpbin.org/links/10/0

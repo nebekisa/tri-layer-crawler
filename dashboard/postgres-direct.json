@@ -1,0 +1,69 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - PostgreSQL Direct",
+    "uid": "postgres-direct",
+    "refresh": "30s",
+    "panels": [
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 1,
+        "title": "?? TOTAL ITEMS",
+        "type": "stat",
+        "targets": [{"format": "table", "rawSql": "SELECT COUNT(*) FROM crawled_items", "refId": "A"}],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 2,
+        "title": "?? UNIQUE DOMAINS",
+        "type": "stat",
+        "targets": [{"format": "table", "rawSql": "SELECT COUNT(DISTINCT domain) FROM crawled_items", "refId": "A"}],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 3,
+        "title": "?? POSITIVE",
+        "type": "stat",
+        "targets": [{"format": "table", "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'positive'", "refId": "A"}],
+        "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "green", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 4,
+        "title": "?? NEUTRAL",
+        "type": "stat",
+        "targets": [{"format": "table", "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'neutral'", "refId": "A"}],
+        "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "orange", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 5,
+        "title": "?? NEGATIVE",
+        "type": "stat",
+        "targets": [{"format": "table", "rawSql": "SELECT COUNT(*) FROM analysis_results WHERE sentiment_label = 'negative'", "refId": "A"}],
+        "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+        "fieldConfig": {"defaults": {"color": {"fixedColor": "red", "mode": "fixed"}}}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 6,
+        "title": "??? TOP DOMAINS",
+        "type": "table",
+        "targets": [{"format": "table", "rawSql": "SELECT domain, COUNT(*) as count FROM crawled_items GROUP BY domain ORDER BY count DESC LIMIT 10", "refId": "A"}],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "datasource": {"type": "postgres", "uid": "PostgreSQL"},
+        "id": 7,
+        "title": "?? RECENT CRAWLS",
+        "type": "table",
+        "targets": [{"format": "table", "rawSql": "SELECT id, domain, title, crawled_at FROM crawled_items ORDER BY crawled_at DESC LIMIT 20", "refId": "A"}],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+      }
+    ]
+  },
+  "overwrite": true
+}

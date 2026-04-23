@@ -1,0 +1,37 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Intelligence Crawler - Advanced",
+    "uid": "tri-layer-advanced",
+    "refresh": "10s",
+    "time": {"from": "now-6h", "to": "now"},
+    "panels": [
+      {
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "id": 301,
+        "title": "?? SENTIMENT DISTRIBUTION",
+        "type": "stat",
+        "targets": [
+          {"expr": "sentiment_positive_total", "legendFormat": "Positive", "refId": "A"},
+          {"expr": "sentiment_neutral_total", "legendFormat": "Neutral", "refId": "B"},
+          {"expr": "sentiment_negative_total", "legendFormat": "Negative", "refId": "C"}
+        ],
+        "gridPos": {"x": 8, "y": 11, "w": 8, "h": 6},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "unit": "short"
+          }
+        },
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+          "textMode": "auto"
+        }
+      }
+    ]
+  },
+  "overwrite": true
+}

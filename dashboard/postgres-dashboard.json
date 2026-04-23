@@ -1,0 +1,112 @@
+{
+  "dashboard": {
+    "title": "Tri-Layer Crawler - PostgreSQL",
+    "uid": "tri-layer-postgres",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Crawled Items",
+        "type": "stat",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT COUNT(*) as total FROM crawled_items",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 2,
+        "title": "Unique Domains",
+        "type": "stat",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT COUNT(DISTINCT domain) as domains FROM crawled_items",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 3,
+        "title": "Items Crawled Today",
+        "type": "stat",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT COUNT(*) FROM crawled_items WHERE DATE(crawled_at) = CURRENT_DATE",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 4,
+        "title": "Avg Sentiment",
+        "type": "stat",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT ROUND(AVG(sentiment_polarity)::numeric, 3) FROM analysis_results",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
+      },
+      {
+        "id": 5,
+        "title": "Recent Crawls",
+        "type": "table",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT url, title, domain, crawled_at FROM crawled_items ORDER BY crawled_at DESC LIMIT 10",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 6,
+        "title": "Domains Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT domain, COUNT(*) as count FROM crawled_items GROUP BY domain",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8}
+      },
+      {
+        "id": 7,
+        "title": "Sentiment Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT sentiment_label, COUNT(*) FROM analysis_results GROUP BY sentiment_label",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8}
+      },
+      {
+        "id": 8,
+        "title": "Top Entities",
+        "type": "table",
+        "targets": [
+          {
+            "format": "table",
+            "rawSql": "SELECT entity_type, entity_text, COUNT(*) as count FROM extracted_entities GROUP BY entity_type, entity_text ORDER BY count DESC LIMIT 10",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8}
+      }
+    ]
+  }
+}
